@@ -42,21 +42,21 @@
 		ChangeState(r_pPreviousState);
 	}
 	
-	State* CurrentState(){return r_pCurrentState;}
-	State* GlobalState(){return r_pGlobalState;}
-	State* PreviousState(){return r_pPreviousState;}
+	State* StateMachine::CurrentState(){return r_pCurrentState;}
+	State* StateMachine::GlobalState(){return r_pGlobalState;}
+	State* StateMachine::PreviousState(){return r_pPreviousState;}
 /* *********** STATE CLASS *********** */
 	// The virtual declaration allows members to be redefined in derived classes
-	virtual State::~State(){} // Destructor
+	State::~State(){} // Destructor
 	
 	// This will execute when the state is entered
-	virtual void State::Enter(Robot*)=0;
+	//void State::Enter(Robot*)=0;
 	
 	// This is called by the robot's update (loop?) function each update step
-	virtual void State::Execute(Robot*)=0;
+	//void State::Execute(Robot*)=0;
 	
 	// This will execute when the state is exited
-	virtual void State::Exit(Robot*)=0;
+	//void State::Exit(Robot*)=0;
 
 /* *********** ROBOT CLASS *********** */
 	Robot::Robot()
@@ -64,7 +64,7 @@
 		// Set up state machine
 		r_pStateMachine = new StateMachine(this);
 		
-		r_pStateMachine->SetCurrentState(/*<state here>::Instance()*/);
+		r_pStateMachine->SetCurrentState(Rest::Instance());
 		r_pStateMachine->SetGlobalState(RobotGlobalState::Instance());
 	}
 	
@@ -74,28 +74,30 @@
 	{
 		r_pStateMachine->Update();
 	}
-	
-	// This method changes the current state to the new state
-	void Robot::ChangeState(State* pNewState)
-	{
-		// Make sure both states are valid before attempting to call their methods
-		assert(r_pCurrentState && pNewState);
-	
-		// Call the exit method of the existing state
-		r_pCurrentState->Exit(this);
-	
-		// Change state to the new state
-		r_pCurrentState = pNewState;
-	
-		// Call the entry method of the new state
-		r_pCurrentState->Enter(this);
-	}
-	
+		
 	StateMachine* Robot::GetFSM(){return r_pStateMachine;}
 
-/* *********** STATE DICTIONARY ************ */
-	virtual void Rest::Enter(Robot* pRobot){}
-	virtual void Rest::Execute(Robot* pRobot){}
-	virtual void Rest::Exit(Miner* pRobot){}
+/* ********** INSTANCE METHOD DEFINITIONS ************ */
+	RobotGlobalState* RobotGlobalState::Instance()
+	{
+		static RobotGlobalState instance;
+		return &instance;
+	}
+	
+	Rest* Rest::Instance()
+	{
+		static Rest instance;
+		return &instance;
+	}
 
-
+	ContractClaw* ContractClaw::Instance()
+	{
+		static ContractClaw instance;
+		return &instance;
+	}
+	
+	Move* Move::Instance()
+	{
+		static Move instance;
+		return &instance;
+	}

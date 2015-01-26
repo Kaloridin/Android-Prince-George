@@ -5,9 +5,13 @@
 #ifndef FSM_h
 #define FSM_h
 
-#include "Arduino.h"
+// Class prototypes
+class StateMachine;
+class State;
+class Robot;
 
-class StateMachine // pg 65, Buckland
+// pg 65 Buckland
+class StateMachine 
 {
 	private:
 		// Pointer to the agent that owns this instance
@@ -34,15 +38,15 @@ class StateMachine // pg 65, Buckland
 		State* CurrentState();
 		State* GlobalState();
 		State* PreviousState();
-}
+};
 class State
 {
 	public:
 		// The virtual declaration allows members to be redefined in derived classes
 		virtual ~State();	// Destructor
-		virtual void Enter(Robot*);	// This will execute when the state is entered
-		virtual void Execute(Robot*);	// This is called by the robot's update (loop?) function each update step
-		virtual void Exit(Robot*);	// This will execute when the state is exited
+		virtual void Enter(Robot*) = 0;	// This will execute when the state is entered
+		virtual void Execute(Robot*) = 0;	// This is called by the robot's update (loop?) function each update step
+		virtual void Exit(Robot*) = 0;	// This will execute when the state is exited
 };
 
 class Robot
@@ -54,22 +58,54 @@ class Robot
 		Robot();	// Constructor
 		~Robot();	// Destructor
 		void Update();
-		void ChangeState(State* pNewState);	// This method changes the current state to the new state
 		StateMachine* GetFSM();
 };
 
+/* Template State
+class myState : public State // This is a state derived from the base state class
+{
+	public:
+		virtual void Enter(Robot*); // These should be defined for each new state 
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static myState* Instance();
+		
+		// A state's members/methods can be accessed with int num = myState::Instance()->GetVal();
+		// Shortcut: #define MySta MyState::Instance() now you can do int num = MySta->GetVal();
+	
+}; */
+
+class RobotGlobalState : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static RobotGlobalState* Instance();
+};
 class Rest : public State
 {
 	public:
 		virtual void Enter(Robot*);
 		virtual void Execute(Robot*);
 		virtual void Exit(Robot*);
-}
+		static Rest* Instance();
+};
 class ContractClaw : public State
 {
 	public:
 		virtual void Enter(Robot*);
 		virtual void Execute(Robot*);
 		virtual void Exit(Robot*);
-}
+		static ContractClaw* Instance();
+};
+
+class Move : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static Move* Instance();
+};
 #endif
