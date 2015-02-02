@@ -1,0 +1,10 @@
+RaiseArmState()
+{
+	LiftAngle = x; // Set servo to optimal dropping angle
+	myServo.write(LiftAngle);
+}
+LowerArmState()
+{
+	LiftAngle = StartAngle; // Set servo to optimal starting angle
+	myServo.write(StartAngle);
+}

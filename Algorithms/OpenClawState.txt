@@ -1,0 +1,5 @@
+void OpenClaw::Enter(Robot* pRobot)
+{
+	clawAngle = 170; // Set claw to open angle
+	myServo.write(clawAngle);
+}

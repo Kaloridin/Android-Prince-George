@@ -1,0 +1,23 @@
+ObstacleAlgorithm()
+{
+	// Save target coordinates
+	tar_x = x_f;
+	tar_y = y_f;
+	
+	// Set temporary new coordinates for path diversion
+	// Sends robot to closest edge (dodging obstacles)
+	if (x_i < tar_x)
+		x_f = x_i - 1; // Towards west edge
+	else
+		x_f = x_i + 1; // Towards east edge
+	if (y_i < tar_y)
+		y_f = y_i - 1; // Towards south edge
+	else
+		y_f = y_i + 1; // Towards top edge
+		
+	// Move to diverted location	
+	ChangeState(Motion);
+	// Continue moving towards target coordinates
+	x_f = tar_x;
+	y_f = tar_y;
+}

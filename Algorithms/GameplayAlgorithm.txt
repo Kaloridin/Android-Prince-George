@@ -1,0 +1,16 @@
+GameplayStrategy()
+{
+	char gameboard[6][7]; // Multidimensional array with state of gameboard
+	int highestDensityLocation;
+	
+	// As the gameboard is scanned assign a density to each spot based on how
+	// many of the surrounding holes are the same colour.
+	
+	// The most appropriate move is to place the ball in an area of highest density
+	
+	// First priority: Connect 4
+	
+	// Second priority: Block opponent's connect 4
+	
+	// Third priority: Group our gameballs together
+}

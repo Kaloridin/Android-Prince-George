@@ -96,6 +96,12 @@
 		return &instance;
 	}
 	
+	OpenClaw* OpenClaw::Instance()
+	{
+		static OpenClaw instance;
+		return &instance;
+	}
+	
 	Move* Move::Instance()
 	{
 		static Move instance;

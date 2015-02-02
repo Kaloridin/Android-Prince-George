@@ -43,10 +43,14 @@ void loop()
 	
 	void ContractClaw::Enter(Robot* pRobot)
 	{	
-		clawAngle = 170;
+		clawAngle = 85; // Set claw to closed angle
 		myServo.write(clawAngle);
 	}
-	void ContractClaw::Exit(Robot* pRobot){}
+	void OpenClaw::Enter(Robot* pRobot)
+	{
+		clawAngle = 170; // Set claw to open angle
+		myServo.write(clawAngle);
+	}
 	
 
 	

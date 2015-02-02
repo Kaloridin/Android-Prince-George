@@ -1,0 +1,12 @@
+// Methodology of assigning coordinates to the random hoppers (see diagram in 8.2.1)
+RandomHopperAssignment()
+{
+	switch(Quadrant)
+		case 1:	switch(Orientation)
+					case 1: Hopper3_x = x1;
+							Hopper3_y = y1;
+					case 2: Hopper3_x = x2;
+							Hopper3_y = y2;
+					// ... for orientation cases 3,4
+		// ... for quadrant cases 2,3,4,5,6
+}

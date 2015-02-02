@@ -99,7 +99,14 @@ class ContractClaw : public State
 		virtual void Exit(Robot*);
 		static ContractClaw* Instance();
 };
-
+class OpenClaw : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static OpenClaw* Instance();
+};
 class Move : public State
 {
 	public:

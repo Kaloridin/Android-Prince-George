@@ -1,0 +1,25 @@
+FindBallState()
+{	
+	// Hopper1 and Hopper2 are the corner hoppers with coordinates hardcoded in
+	// Set target coordinates to those of the hopper
+	if (Hopper1 has gameballs)
+	x_f = Hopper1_x;
+	y_f = Hopper1_y;
+	else if (Hopper2 has gameballs)
+	x_f = Hopper2_x;
+	y_f = Hopper2_y;
+	else... assign to random hopper coordinates
+	
+	ChangeState(Motion);
+	
+	// When position is reached program flow will return here
+	
+	switch(Hopper) // Assign rotation angle based on hopper position
+	{	
+		case example: HopperAngle = x;
+	}
+	while StepAngle != HopperAngle // Rotate claw to proper angle
+	{
+		Set step motor HIGH
+	}
+}
