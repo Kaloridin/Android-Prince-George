@@ -5,6 +5,12 @@
 #ifndef FSM_h
 #define FSM_h
 
+#include <Arduino.h>
+
+// Enumerated types
+enum movement {lateral, longitudinal};
+//enum stateName {Rest, Motion};
+
 // Class prototypes
 class StateMachine;
 class State;
@@ -45,7 +51,7 @@ class State
 		// The virtual declaration allows members to be redefined in derived classes
 		virtual ~State();	// Destructor
 		virtual void Enter(Robot*) = 0;	// This will execute when the state is entered
-		virtual void Execute(Robot*) = 0;	// This is called by the robot's update (loop?) function each update step
+		virtual void Execute(Robot*) = 0;	// This is called by the robot's update function each update step
 		virtual void Exit(Robot*) = 0;	// This will execute when the state is exited
 };
 
@@ -53,12 +59,20 @@ class Robot
 {
 	private:
 		StateMachine* r_pStateMachine; // An instance of the state machine class
-	
+		
 	public:
 		Robot();	// Constructor
 		~Robot();	// Destructor
 		void Update();
 		StateMachine* GetFSM();
+		
+		// Robot properties
+		String currentState;
+		movement movementType;
+		bool hasBall;
+		int x_coord;
+		int y_coord;
+		
 };
 
 /* Template State
@@ -107,12 +121,12 @@ class OpenClaw : public State
 		virtual void Exit(Robot*);
 		static OpenClaw* Instance();
 };
-class Move : public State
+class Motion : public State
 {
 	public:
 		virtual void Enter(Robot*);
 		virtual void Execute(Robot*);
 		virtual void Exit(Robot*);
-		static Move* Instance();
+		static Motion* Instance();
 };
 #endif

@@ -1,5 +1,5 @@
 // Updates the current coordinates based on grid detection readings from optosensors on base
-CoordinateAlgorithm(int x_i, int x_f, int y_i, int y_f) // i = current position, f = final (target) position
+CoordinateAlgorithm(int &x_i, int x_f, int &y_i, int y_f) // i = current position, f = final (target) position
 {	
 	switch(movementType) // Movement type is either lateral or longitudinal
 	{

@@ -66,6 +66,11 @@
 		
 		r_pStateMachine->SetCurrentState(Rest::Instance());
 		r_pStateMachine->SetGlobalState(RobotGlobalState::Instance());
+		
+		// Set initial coordinates and conditions
+		x_coord = 0;
+		y_coord = 0;
+		hasBall = false;
 	}
 	
 	Robot::~Robot(){delete r_pStateMachine;}
@@ -102,8 +107,8 @@
 		return &instance;
 	}
 	
-	Move* Move::Instance()
+	Motion* Motion::Instance()
 	{
-		static Move instance;
+		static Motion instance;
 		return &instance;
 	}

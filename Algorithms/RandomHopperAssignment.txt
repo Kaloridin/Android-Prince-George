@@ -1,4 +1,5 @@
-// Methodology of assigning coordinates to the random hoppers (see diagram in 8.2.1)
+// Methodology of assigning coordinates to the random hoppers 
+// (see figure 18 in section 8.2.1)
 RandomHopperAssignment()
 {
 	switch(Quadrant)
