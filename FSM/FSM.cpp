@@ -71,6 +71,7 @@
 		x_coord = 0;
 		y_coord = 0;
 		hasBall = false;
+		newIntersection = false;
 	}
 	
 	Robot::~Robot(){delete r_pStateMachine;}

@@ -10,32 +10,47 @@
 
 	void Debug(String msg)
 	{
-		Serial.println(msg);
+		Serial.print(msg);
 	}
 	void Debug(int val)
 	{
-		Serial.println(val);
+		Serial.print(val);
 	}
 	void Debug(float val)
 	{
-		Serial.println(val);
+		Serial.print(val);
 	}
 	void Debug(int val, int sensorMin, int sensorMax, int outputMin, int outputMax)
 	{
-		Serial.println(map(val, sensorMin, sensorMax, outputMin, outputMax));
+		Serial.print(map(val, sensorMin, sensorMax, outputMin, outputMax));
 	}
 	
-	void Status(String currentState, movement movementType, int x_coord, int y_coord, bool hasBall )
-	{	Serial.print("-----------------------------------------\n");
+	void Status(String currentState, movement movementType, int x_coord, int y_coord, bool hasBall)
+	{	
+		Serial.print("-----------------------------------------\r\n");
 		Serial.print("Current State:\t"); Serial.print(currentState);
-		Serial.print("\nMovement Type:\t"); if (movementType == lateral) {Serial.print("Lateral");} else {Serial.print("Longitudinal");}
-		Serial.print("\nCurrent Coordinates:\tX = "); Serial.print(x_coord);
-		Serial.print("\n\t\tY = "); Serial.print(y_coord);
-		Serial.print("Robot has ball: "); if (hasBall == true) {Serial.print("True");} else {Serial.print("False");}
-	
+		Serial.print("\r\nMovement Type:\t");
+		if (movementType == lateral) 
+		{
+			Serial.print("Lateral");
+		} 
+		else if (movementType == longitudinal)
+		{
+			Serial.print("Longitudinal");
+		}
+		else if (movementType == none)
+		{
+			Serial.print("None");
+		}
+		Serial.print("\r\nCurrent Coordinates:\tX = "); Serial.print(x_coord);
+		Serial.print("\r\n\t\t\tY = "); Serial.print(y_coord);
+		Serial.print("\r\nTarget Coordinates:\tX = "); Serial.print(x_target);
+		Serial.print("\r\n\t\t\tY = "); Serial.print(y_target);
+		//Serial.print("\r\nH-Bridge Enables:\tH-Bridge 1: A: "); 
+		Serial.print("\r\nRobot has ball: "); if (hasBall == true) {Serial.print("True");} else {Serial.print("False");}
+		Serial.print("\r\nPhotoresistor Readings:\tSensor A: "); Debug(photoSensorStateA); Debug("\r\n\t\t\tSensor B: "); Debug(photoSensorStateB); Debug("\r\n\t\t\tSensor C: "); Debug(photoSensorStateC); Debug("\r\n\t\t\tSensor D: "); Debug(photoSensorStateD);
 		
-		
-		Serial.print("\n-----------------------------------------");
+		Serial.print("\r\n-----------------------------------------");
 	}
 
 #endif

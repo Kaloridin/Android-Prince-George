@@ -8,7 +8,7 @@
 #include <Arduino.h>
 
 // Enumerated types
-enum movement {lateral, longitudinal};
+enum movement {lateral,longitudinal,none};
 //enum stateName {Rest, Motion};
 
 // Class prototypes
@@ -70,6 +70,7 @@ class Robot
 		String currentState;
 		movement movementType;
 		bool hasBall;
+		bool newIntersection;
 		int x_coord;
 		int y_coord;
 		
