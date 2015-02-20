@@ -7,8 +7,6 @@
 
 #include <Arduino.h>
 
-// Enumerated types
-enum movement {lateral,longitudinal,none};
 //enum stateName {Rest, Motion};
 
 // Class prototypes

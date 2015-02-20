@@ -1,5 +1,7 @@
 #define DebugRobotStatus(); Status(pRobot->currentState, pRobot->movementType, pRobot->x_coord, pRobot->y_coord, pRobot->hasBall);
-
+// Enumerated types
+enum movement {lateral,longitudinal,none};
+enum rotation {clockwise,anticlockwise,none};
 
 const int hBridgeEnable1A = 3; // Corresponds to hbridge 1, motor A
 const int hBridgeEnable1B = 5; // Corresponds to hbridge 1, motor B
@@ -26,9 +28,10 @@ int motorControlPinD2 = 11;
 
 
 float clawAngle = 95;		// Angle of the claw servo motor | 95 = Closed | 170 = Open |
-int driveSpeed = 200;			// Driving speed of motors
+int driveSpeed = 255;		// Driving speed of motors
 int directionFR = 1;		// Direction forward/right
 int directionBL = 0;		// Direction backward/left
+int currentDirection;
 
 int x_target = 0;
 int y_target = 0;
@@ -66,6 +69,7 @@ void setup()
 	digitalWrite(hBridgeEnable2D, LOW);
 	MotorControl(motorControlPinA1, motorControlPinA2, motorControlPinB1, motorControlPinB2, hBridgeEnable1A, hBridgeEnable1B, 0, 0);
 	MotorControl(motorControlPinC1, motorControlPinC2, motorControlPinD1, motorControlPinD2, hBridgeEnable2C, hBridgeEnable2D, 0, 0);
+
 }
 
 void loop()
@@ -77,7 +81,7 @@ void loop()
 	void RobotGlobalState::Enter(Robot* pRobot){}
 	void RobotGlobalState::Execute(Robot* pRobot)
 	{	
-		delay(500);
+		//delay(500); // This delay interferes with constant sensor readings
         Serial.write(27);       // ESC command
         Serial.print("[2J");    // clear screen command
         Serial.write(27);
@@ -128,24 +132,23 @@ void loop()
 			pRobot->movementType = lateral;
 			if (pRobot->x_coord < x_target) // Drive forwards (1)
 			{	
-				// Drive motors corresponding to lateral motion omni wheels
-				MotorControl(motorControlPinB1, motorControlPinB2, motorControlPinC1, motorControlPinC2, hBridgeEnable1B, hBridgeEnable2C, driveSpeed, directionFR);
-				
-				// Update coordinates
-				CoordinateAlgorithm(pRobot->x_coord, pRobot->y_coord, x_target, y_target, pRobot->movementType, pRobot->newIntersection);
+				currentDirection = directionFR;
 			}
 			if (pRobot->x_coord > x_target) // Drive reverse (0)
 			{	
-				// Drive motors corresponding to lateral motion omni wheels
-				MotorControl(motorControlPinB1, motorControlPinB2, motorControlPinC1, motorControlPinC2, hBridgeEnable1B, hBridgeEnable2C, driveSpeed, directionBL);
-				
-				// Update coordinates
-				CoordinateAlgorithm(pRobot->x_coord, pRobot->y_coord, x_target, y_target, pRobot->movementType, pRobot->newIntersection);				
+				currentDirection = directionBL;	
 			}		
+			// Drive motors corresponding to lateral motion omni wheels
+			MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, currentDirection);
+			MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, driveSpeed, currentDirection);
+				
+			// Update coordinates
+			CoordinateAlgorithm(pRobot->x_coord, pRobot->y_coord, x_target, y_target, pRobot->movementType, pRobot->newIntersection, currentDirection);
 		}
-		else
+		if (pRobot->x_coord == x_target)
 		{	// Lateral coordinate reached, power down motors
-			MotorControl(motorControlPinB1, motorControlPinB2, motorControlPinC1, motorControlPinC2, hBridgeEnable1B, hBridgeEnable2C, 0, 0);
+			MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, 0, 0);
+			MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, 0, 0);
 		}
 		
 		if (pRobot->y_coord != y_target && pRobot->x_coord == x_target) // A,D
@@ -153,30 +156,31 @@ void loop()
 			// Update movement type
 			pRobot->movementType = longitudinal;
 			if (pRobot->y_coord < y_target) // Drive "right" (1)
-			{
-				// Drive motors corresponding to longitudinal motion omni wheels
-				MotorControl(motorControlPinA1, motorControlPinA2, motorControlPinD1, motorControlPinD2, hBridgeEnable1A, hBridgeEnable2D, driveSpeed, directionFR);
-				
-				// Update coordinates
-				CoordinateAlgorithm(pRobot->x_coord, pRobot->y_coord, x_target, y_target, pRobot->movementType, pRobot->newIntersection);
+			{	
+				currentDirection = directionFR;
 			}
 			if (pRobot->y_coord > y_target) // Drive "left" (0)
 			{	
-				// Drive motors corresponding to longitudinal motion omni wheels
-				MotorControl(motorControlPinA1, motorControlPinA2, motorControlPinD1, motorControlPinD2, hBridgeEnable1A, hBridgeEnable2D, driveSpeed, directionBL);
-
-				// Update coordinates
-				CoordinateAlgorithm(pRobot->x_coord, pRobot->y_coord, x_target, y_target, pRobot->movementType, pRobot->newIntersection);
+				currentDirection = directionBL;
 			}
+			// Drive motors corresponding to longitudinal motion omni wheels
+			MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, currentDirection);
+			MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, driveSpeed, currentDirection);
+				
+			// Update coordinates
+			CoordinateAlgorithm(pRobot->x_coord, pRobot->y_coord, x_target, y_target, pRobot->movementType, pRobot->newIntersection, currentDirection);
 		}
-		else
+		if (pRobot->y_coord == y_target)
 		{	// Longitudinal coordinate reached, power down motors
-			MotorControl(motorControlPinA1, motorControlPinA2, motorControlPinD1, motorControlPinD2, hBridgeEnable1A, hBridgeEnable2D, 0, 0);
+			MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, 0, 0);
+			MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, 0, 0);
 		}
 	}
 	void Motion::Exit(Robot* pRobot)
 	{	// Power down motors
-		MotorControl(motorControlPinA1, motorControlPinA2, motorControlPinB1, motorControlPinB2, hBridgeEnable1A, hBridgeEnable1B, 0, 0);
-		MotorControl(motorControlPinC1, motorControlPinC2, motorControlPinD1, motorControlPinD2, hBridgeEnable2C, hBridgeEnable2D, 0, 0);
+		MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, 0, 0);
+		MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, 0, 0);
+		MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, 0, 0);
+		MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, 0, 0);
 	}
 	
