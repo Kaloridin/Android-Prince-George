@@ -1,7 +1,4 @@
 #define DebugRobotStatus(); Status(pRobot->currentState, pRobot->movementType, pRobot->x_coord, pRobot->y_coord, pRobot->hasBall);
-// Enumerated types
-enum movement {lateral,longitudinal,none};
-enum rotation {clockwise,anticlockwise,none};
 
 const int hBridgeEnable1A = 3; // Corresponds to hbridge 1, motor A
 const int hBridgeEnable1B = 5; // Corresponds to hbridge 1, motor B
@@ -25,25 +22,57 @@ int motorControlPinC1 = 4;
 int motorControlPinC2 = 2;
 int motorControlPinD1 = 10;
 int motorControlPinD2 = 11;
+/***** Calibrated Values ******/
+/* Prototype Board
+const int blackValueA = 230;
+const int blackValueB = 200;
+const int blackValueC = 558;
+const int blackValueD = 170;
+const int whiteValueA = 163;
+const int whiteValueB = 252;
+const int whiteValueC = 808;
+const int whiteValueD = 70;
+*/
+const int blackValueA = 530;
+const int blackValueB = 650;
+const int blackValueC = 775;
+const int blackValueD = 330;
+const int whiteValueA = 700;
+const int whiteValueB = 756;
+const int whiteValueC = 790;
+const int whiteValueD = 229;
+/*******************************/
 
+// Hardcoded Coordinates
+const int Hopper1_x = 0;
+const int Hopper1_y = 0;
+const int Hopper2_x = 0;
+const int Hopper2_y = 0;
+const int gameboard_x = 0;
+const int gameboard_y = 0;
+int x_target = 0;
+int y_target = 0;
 
-float clawAngle = 95;		// Angle of the claw servo motor | 95 = Closed | 170 = Open |
+int clawAngle = 95;		// Angle of the claw servo motor | 95 = Closed | 170 = Open |
+int verticalArmAngle = 0;
+int horizontalArmAngle = 0;
 int driveSpeed = 255;		// Driving speed of motors
 int directionFR = 1;		// Direction forward/right
 int directionBL = 0;		// Direction backward/left
 int currentDirection;
 
-int x_target = 0;
-int y_target = 0;
 
+#include "Arduino.h"
 #include <FSM.h>
+#include <Debug.h>
 #include <Servo.h>
 #include <Electromechanics.h>
 #include <Algorithms.h>
-#include <Debug.h>
 
 Robot myRobot;
-Servo myServo;
+Servo myClawServo;
+Servo myHorizontalArmServo;
+Servo myVerticalArmServo;
 	
 void setup()
 {	
@@ -67,8 +96,10 @@ void setup()
 	digitalWrite(hBridgeEnable1B, LOW);
 	digitalWrite(hBridgeEnable2C, LOW);
 	digitalWrite(hBridgeEnable2D, LOW);
-	MotorControl(motorControlPinA1, motorControlPinA2, motorControlPinB1, motorControlPinB2, hBridgeEnable1A, hBridgeEnable1B, 0, 0);
-	MotorControl(motorControlPinC1, motorControlPinC2, motorControlPinD1, motorControlPinD2, hBridgeEnable2C, hBridgeEnable2D, 0, 0);
+	MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, 0, 0);
+	MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, 0, 0);
+	MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, 0, 0);
+	MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, 0, 0);
 
 }
 
@@ -105,13 +136,29 @@ void loop()
 	
 	void ContractClaw::Enter(Robot* pRobot)
 	{	
+		pRobot->currentState = "ContractClaw";
 		clawAngle = 85; // Set claw to closed angle
-		myServo.write(clawAngle);
+		myClawServo.write(clawAngle);
 	}
 	void OpenClaw::Enter(Robot* pRobot)
 	{
+		pRobot->currentState = "OpenClaw";
 		clawAngle = 170; // Set claw to open angle
-		myServo.write(clawAngle);
+		myClawServo.write(clawAngle);
+	}
+	void RaiseArm::Enter(Robot* pRobot)
+	{
+		pRobot->currentState = "RaiseArm";
+		verticalArmAngle = 170; // Set arm to raised position
+		myVerticalArmServo.write(verticalArmAngleAngle);
+		delay(15);
+	}
+	void LowerArm::Enter(Robot* pRobot)
+	{
+		pRobot->currentState = "LowerArm";
+		verticalArmAngle = 0; // Set arm to lowered position
+		myVerticalArmServo.write(verticalArmAngleAngle);
+		delay(15);
 	}
 	
 

@@ -108,8 +108,38 @@
 		return &instance;
 	}
 	
+	RaiseArm* RaiseArm::Instance()
+	{
+		static RaiseArm instance;
+		return &instance;
+	}
+	
+	LowerArm* LowerArm::Instance()
+	{
+		static LowerArm instance;
+		return &instance;
+	}
+	
+	RotateArm* Arm::Instance()
+	{
+		static RotateArm instance;
+		return &instance;
+	}
+	
 	Motion* Motion::Instance()
 	{
 		static Motion instance;
+		return &instance;
+	}
+	
+	FindBall* FindBall::Instance()
+	{
+		static FindBall instance;
+		return &instance;
+	}
+	
+	PlaceBall* PlaceBall::Instance()
+	{
+		static PlaceBall instance;
 		return &instance;
 	}

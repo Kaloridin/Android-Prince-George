@@ -8,6 +8,9 @@
 #include <Arduino.h>
 
 //enum stateName {Rest, Motion};
+// Enumerated types
+enum movement{lateral,longitudinal,none};
+enum rotation{clockwise,anticlockwise,irrotational};
 
 // Class prototypes
 class StateMachine;
@@ -120,6 +123,38 @@ class OpenClaw : public State
 		virtual void Exit(Robot*);
 		static OpenClaw* Instance();
 };
+class RaiseArm : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static RaiseArm* Instance();
+};
+class LowerArm : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static LowerArm* Instance();
+};
+class LowerArm : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static LowerArm* Instance();
+};
+class RotateArm : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static RotateArm* Instance();
+};
 class Motion : public State
 {
 	public:
@@ -128,4 +163,21 @@ class Motion : public State
 		virtual void Exit(Robot*);
 		static Motion* Instance();
 };
+class FindBall : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static FindBall* Instance();
+};
+class PlaceBall : public State
+{
+	public:
+		virtual void Enter(Robot*);
+		virtual void Execute(Robot*);
+		virtual void Exit(Robot*);
+		static PlaceBall* Instance();
+};
+
 #endif

@@ -20,6 +20,10 @@
 	{
 		Serial.print(val);
 	}
+	void Debug(char letter)
+	{
+		Serial.print(letter);
+	}
 	void Debug(int val, int sensorMin, int sensorMax, int outputMin, int outputMax)
 	{
 		Serial.print(map(val, sensorMin, sensorMax, outputMin, outputMax));

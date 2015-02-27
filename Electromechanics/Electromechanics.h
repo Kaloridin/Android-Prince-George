@@ -23,8 +23,7 @@ void MotorControl(const int controlPin1, const int controlPin2, const int enable
 		digitalWrite(controlPin1, HIGH);
 		digitalWrite(controlPin2, LOW);
 	}
-	//analogWrite(enablePinA, speed);
-	//analogWrite(enablePinB, speed);
+	//analogWrite(enablePin, speed);
 	digitalWrite(enablePin, HIGH);
 }
 /* A, C return values from [0,1023] ; B, D return values from [0,255] */
