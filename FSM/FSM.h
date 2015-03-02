@@ -107,54 +107,6 @@ class Rest : public State
 		virtual void Exit(Robot*);
 		static Rest* Instance();
 };
-class ContractClaw : public State
-{
-	public:
-		virtual void Enter(Robot*);
-		virtual void Execute(Robot*);
-		virtual void Exit(Robot*);
-		static ContractClaw* Instance();
-};
-class OpenClaw : public State
-{
-	public:
-		virtual void Enter(Robot*);
-		virtual void Execute(Robot*);
-		virtual void Exit(Robot*);
-		static OpenClaw* Instance();
-};
-class RaiseArm : public State
-{
-	public:
-		virtual void Enter(Robot*);
-		virtual void Execute(Robot*);
-		virtual void Exit(Robot*);
-		static RaiseArm* Instance();
-};
-class LowerArm : public State
-{
-	public:
-		virtual void Enter(Robot*);
-		virtual void Execute(Robot*);
-		virtual void Exit(Robot*);
-		static LowerArm* Instance();
-};
-class LowerArm : public State
-{
-	public:
-		virtual void Enter(Robot*);
-		virtual void Execute(Robot*);
-		virtual void Exit(Robot*);
-		static LowerArm* Instance();
-};
-class RotateArm : public State
-{
-	public:
-		virtual void Enter(Robot*);
-		virtual void Execute(Robot*);
-		virtual void Exit(Robot*);
-		static RotateArm* Instance();
-};
 class Motion : public State
 {
 	public:

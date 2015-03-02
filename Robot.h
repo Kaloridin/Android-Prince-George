@@ -1,78 +1,61 @@
 #define DebugRobotStatus(); Status(pRobot->currentState, pRobot->movementType, pRobot->x_coord, pRobot->y_coord, pRobot->hasBall);
 
-const int hBridgeEnable1A = 3; // Corresponds to hbridge 1, motor A
-const int hBridgeEnable1B = 5; // Corresponds to hbridge 1, motor B
-const int hBridgeEnable2C = 6; // Corresponds to hbridge 2, motor C
-const int hBridgeEnable2D = 9; // Corresponds to hbridge 2, motor D
-const int photoSensorPinA = A1;
-const int photoSensorPinB = A2;
-const int photoSensorPinC = A3;
-const int photoSensorPinD = A0;
-int photoSensorStateA = 0;
-int photoSensorStateB = 0;
-int photoSensorStateC = 0;
-int photoSensorStateD = 0;
+const int hBridgeEnable1A = 9; // Corresponds to hbridge 1, motor A
+const int hBridgeEnable1B = 2; // Corresponds to hbridge 1, motor B
+const int hBridgeEnable2C = 3; // Corresponds to hbridge 2, motor C
+const int hBridgeEnable2D = 8; // Corresponds to hbridge 2, motor D
+unsigned int optoSensorStateA = 0;
+unsigned int optoSensorStateB = 0;
+unsigned int optoSensorStateC = 0;
+unsigned int optoSensorStateD = 0;
 // Motor direction 1 = forward/right
 // Motor direction 0 = reverse/left
-int motorControlPinA1 = 12;
-int motorControlPinA2 = 13;
-int motorControlPinB1 = 7;
-int motorControlPinB2 = 8;
-int motorControlPinC1 = 4;
-int motorControlPinC2 = 2;
-int motorControlPinD1 = 10;
-int motorControlPinD2 = 11;
-/***** Calibrated Values ******/
-/* Prototype Board
-const int blackValueA = 230;
-const int blackValueB = 200;
-const int blackValueC = 558;
-const int blackValueD = 170;
-const int whiteValueA = 163;
-const int whiteValueB = 252;
-const int whiteValueC = 808;
-const int whiteValueD = 70;
-*/
-const int blackValueA = 530;
-const int blackValueB = 650;
-const int blackValueC = 775;
-const int blackValueD = 330;
-const int whiteValueA = 700;
-const int whiteValueB = 756;
-const int whiteValueC = 790;
-const int whiteValueD = 229;
-/*******************************/
+const int motorControlPinA1 = 22;
+const int motorControlPinA2 = 24;
+const int motorControlPinB1 = 5;
+const int motorControlPinB2 = 4;
+const int motorControlPinC1 = 7;
+const int motorControlPinC2 = 6;
+const int motorControlPinD1 = 28;
+const int motorControlPinD2 = 26;
+const int pressureSwitchPin = 48;
+const int clawServoPin = 10;
+const int verticalArmAnglePin = 11;
+const int horizontalArmAnglePin = 12;
+
+int pressureSwitchState = LOW;
 
 // Hardcoded Coordinates
 const int Hopper1_x = 0;
-const int Hopper1_y = 0;
+const int Hopper1_y = -3;
 const int Hopper2_x = 0;
-const int Hopper2_y = 0;
+const int Hopper2_y = 3;
 const int gameboard_x = 0;
-const int gameboard_y = 0;
+const int gameboard_y = 5;
 int x_target = 0;
 int y_target = 0;
 
-int clawAngle = 95;		// Angle of the claw servo motor | 95 = Closed | 170 = Open |
-int verticalArmAngle = 0;
+int clawAngle = 180;		// Angle of the claw servo motor | 90 = Closed | 180 = Open |
+int verticalArmAngle = 0;	// Angle of the vertical arm servo motor | 0 = Raised | 180 = Lowered |
 int horizontalArmAngle = 0;
-int driveSpeed = 255;		// Driving speed of motors
+int driveSpeed = 200;		// Driving speed of motors
 int directionFR = 1;		// Direction forward/right
 int directionBL = 0;		// Direction backward/left
 int currentDirection;
 
-
+//#include <EEPROM.h>
 #include "Arduino.h"
+#include <QTRSensors.h>
+QTRSensorsRC qtrrc((unsigned char[]) {34, 36, 38, 40}, 4); // create an object for four QTR-xRC sensors on digital pins 14,15,16,17 (analog inputs A0 - A3)
 #include <FSM.h>
+Robot myRobot;
 #include <Debug.h>
 #include <Servo.h>
+Servo myClawServo; // pin 13
+Servo myHorizontalArmServo; // pin 12
+Servo myVerticalArmServo; // pin 11
 #include <Electromechanics.h>
 #include <Algorithms.h>
-
-Robot myRobot;
-Servo myClawServo;
-Servo myHorizontalArmServo;
-Servo myVerticalArmServo;
 	
 void setup()
 {	
@@ -91,6 +74,8 @@ void setup()
 	pinMode(hBridgeEnable2C, OUTPUT);
 	pinMode(hBridgeEnable2D, OUTPUT);
 	
+	pinMode(pressureSwitchPin, INPUT);
+	
 	// Initialize motors as powered off
 	digitalWrite(hBridgeEnable1A, LOW);
 	digitalWrite(hBridgeEnable1B, LOW);
@@ -100,7 +85,29 @@ void setup()
 	MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, 0, 0);
 	MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, 0, 0);
 	MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, 0, 0);
-
+	
+	// Start calibration phase and move the sensors over both reflectance extremes to be encountered
+	/*
+	int i;
+	for (i = 0; i < 250; i++)
+	{
+		qtrrc.calibrate();
+		delay(20);
+	}
+	EEPROM.write(0, map(qtrrc.calibratedMinimumOn[0], 0, 4000, 0, 255));
+	EEPROM.write(1, map(qtrrc.calibratedMaximumOn[0], 0, 4000, 0, 255));
+	EEPROM.write(2, map(qtrrc.calibratedMinimumOn[1], 0, 4000, 0, 255));
+	EEPROM.write(3, map(qtrrc.calibratedMaximumOn[1], 0, 4000, 0, 255));
+	EEPROM.write(4, map(qtrrc.calibratedMinimumOn[2], 0, 4000, 0, 255));
+	EEPROM.write(5, map(qtrrc.calibratedMaximumOn[2], 0, 4000, 0, 255));
+	EEPROM.write(6, map(qtrrc.calibratedMinimumOn[3], 0, 4000, 0, 255));
+	EEPROM.write(7, map(qtrrc.calibratedMaximumOn[3], 0, 4000, 0, 255));
+	*/
+	
+	myClawServo.attach(clawServoPin);
+	myHorizontalArmServo.attach(horizontalArmAnglePin);
+	myVerticalArmServo.attach(verticalArmAnglePin);
+	ChangeServoAngle(myClawServo, clawAngle);
 }
 
 void loop()
@@ -109,15 +116,16 @@ void loop()
 }
 
 /* *********** STATE DICTIONARY ************ */
-	void RobotGlobalState::Enter(Robot* pRobot){}
+	void RobotGlobalState::Enter(Robot* pRobot)
+	{
+		//DebugRobotStatus();
+	}
 	void RobotGlobalState::Execute(Robot* pRobot)
 	{	
 		//delay(500); // This delay interferes with constant sensor readings
-        Serial.write(27);       // ESC command
-        Serial.print("[2J");    // clear screen command
-        Serial.write(27);
-        Serial.print("[H");     // cursor to home command
-		DebugRobotStatus();
+		//DebugRobotStatus();
+		//DebugCalibrate();
+
 	}
 	void RobotGlobalState::Exit(Robot* pRobot){}
 	
@@ -128,40 +136,10 @@ void loop()
 	}
 	void Rest::Execute(Robot* pRobot)
 	{		
-			delay(10000);
+			delay(3000);
 			pRobot->GetFSM()->ChangeState(Motion::Instance());	
-	}	
+	}
 	void Rest::Exit(Robot* pRobot){}
-	
-	
-	void ContractClaw::Enter(Robot* pRobot)
-	{	
-		pRobot->currentState = "ContractClaw";
-		clawAngle = 85; // Set claw to closed angle
-		myClawServo.write(clawAngle);
-	}
-	void OpenClaw::Enter(Robot* pRobot)
-	{
-		pRobot->currentState = "OpenClaw";
-		clawAngle = 170; // Set claw to open angle
-		myClawServo.write(clawAngle);
-	}
-	void RaiseArm::Enter(Robot* pRobot)
-	{
-		pRobot->currentState = "RaiseArm";
-		verticalArmAngle = 170; // Set arm to raised position
-		myVerticalArmServo.write(verticalArmAngleAngle);
-		delay(15);
-	}
-	void LowerArm::Enter(Robot* pRobot)
-	{
-		pRobot->currentState = "LowerArm";
-		verticalArmAngle = 0; // Set arm to lowered position
-		myVerticalArmServo.write(verticalArmAngleAngle);
-		delay(15);
-	}
-	
-
 	
 	void Motion::Enter(Robot* pRobot)
 	{	
@@ -171,7 +149,7 @@ void loop()
 	{	
 		if (pRobot->x_coord == x_target && pRobot->y_coord == y_target)
 		{
-			pRobot->GetFSM()->ChangeState(Rest::Instance());	
+			pRobot->GetFSM()->RevertToPreviousState(); // Motion finished, transition to previous state
 		}
 		if (pRobot->x_coord != x_target) // B,C
 		{	
@@ -230,4 +208,81 @@ void loop()
 		MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, 0, 0);
 		MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, 0, 0);
 	}
+	
+	void FindBall::Enter(Robot* pRobot)
+	{	
+		pRobot->currentState = "FindBall";
+		// Set coordinates to a hopper
+		x_target = 0;
+		y_target = 0;
+		if (pRobot->x_coord != x_target && pRobot->y_coord != y_target)
+		{
+			pRobot->GetFSM()->ChangeState(Motion::Instance()); // Travel to specified coordinates
+		}
+		if (clawAngle != 180)
+		{
+			clawAngle = 180;
+		}
+		myClawServo.write(clawAngle);
+	}
+	void FindBall::Execute(Robot* pRobot)
+	{
+		// Lower arm to ball grabbing position
+		if (verticalArmAngle != 180)
+		{
+			verticalArmAngle = 180;
+			ChangeServoAngle(myVerticalArmServo, verticalArmAngle);
+		}
+		// Drive until pressure switch trips
+		do
+		{
+			currentDirection = directionFR;
+			MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, currentDirection);
+			MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, driveSpeed, currentDirection);
+			pressureSwitchState = digitalRead(pressureSwitchPin);
+			delay(5);
+			DebugRobotStatus();
+		} while (pressureSwitchState != HIGH);
+		// Power motors off
+		MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, 0, 0);
+		MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, 0, 0);
+		// Contract claw
+		clawAngle = 90;
+		ChangeServoAngle(myClawServo, clawAngle);
+		pRobot->hasBall = true;
+		// Place ball in gameboard
+		if (pRobot->hasBall)
+			pRobot->GetFSM()->ChangeState(PlaceBall::Instance());
+	}
+	void FindBall::Exit(Robot* pRobot)
+	{	
+		if (verticalArmAngle != 0)
+		{
+			verticalArmAngle = 0;
+			ChangeServoAngle(myVerticalArmServo, verticalArmAngle);
+		}
+	}
+	
+	void PlaceBall::Enter(Robot* pRobot)
+	{	
+		pRobot->currentState = "PlaceBall";
+		// Set coordinates to a hopper
+		x_target = 0;
+		y_target = 5;
+		if (pRobot->x_coord != x_target || pRobot->y_coord != y_target)
+		{
+			pRobot->GetFSM()->ChangeState(Motion::Instance()); // Travel to specified coordinates
+		}
+		else
+		{
+			// Open claw to drop ball
+			clawAngle = 180;
+			ChangeServoAngle(myClawServo, clawAngle);
+			pRobot->hasBall = false;
+			DebugRobotStatus();
+		}
+	}
+	void PlaceBall::Execute(Robot* pRobot){}
+	void PlaceBall::Exit(Robot* pRobot){}
+
 	

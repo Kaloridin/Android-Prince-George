@@ -95,36 +95,6 @@
 		static Rest instance;
 		return &instance;
 	}
-
-	ContractClaw* ContractClaw::Instance()
-	{
-		static ContractClaw instance;
-		return &instance;
-	}
-	
-	OpenClaw* OpenClaw::Instance()
-	{
-		static OpenClaw instance;
-		return &instance;
-	}
-	
-	RaiseArm* RaiseArm::Instance()
-	{
-		static RaiseArm instance;
-		return &instance;
-	}
-	
-	LowerArm* LowerArm::Instance()
-	{
-		static LowerArm instance;
-		return &instance;
-	}
-	
-	RotateArm* Arm::Instance()
-	{
-		static RotateArm instance;
-		return &instance;
-	}
 	
 	Motion* Motion::Instance()
 	{

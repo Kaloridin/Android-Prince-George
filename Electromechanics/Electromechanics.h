@@ -12,6 +12,7 @@ void MotorControl(const int controlPin1, const int controlPin2, const int enable
 	if (speed == 0) // Turn off motors
 	{
 		digitalWrite(controlPin1, LOW);
+		digitalWrite(controlPin2, LOW);
 	}
 	else if (direction == 0) // Direction reverse/left
 	{
@@ -23,13 +24,24 @@ void MotorControl(const int controlPin1, const int controlPin2, const int enable
 		digitalWrite(controlPin1, HIGH);
 		digitalWrite(controlPin2, LOW);
 	}
-	//analogWrite(enablePin, speed);
-	digitalWrite(enablePin, HIGH);
+	analogWrite(enablePin, speed);
+	//digitalWrite(enablePin, HIGH);
 }
-/* A, C return values from [0,1023] ; B, D return values from [0,255] */
-void PhotoResistorReading(const int photoSensorPin, int &photoSensorState)
+
+void ChangeServoAngle(Servo myServo, int angle)
 {
-	photoSensorState = analogRead(photoSensorPin);
-	delay(5);
+	myServo.write(angle);
+	delay(15);
+}
+
+void OptoSensorReading()
+{
+	unsigned int sensors[4];
+	//qtrrc.readCalibrated(sensors);
+	qtrrc.read(sensors);
+	optoSensorStateA = sensors[0];
+	optoSensorStateB = sensors[1];
+	optoSensorStateC = sensors[2];
+	optoSensorStateD = sensors[3];
 }
 #endif

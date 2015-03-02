@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 // Prototypes
-bool CheckIfBlack(char sensor, int blackValue, int whiteValue);
+bool CheckIfBlack(char sensor);
 void Rotate(char sensor, rotation rotationType);
 void OrientationCorrection(char sensor, movement movementType, int currentDirection);
 
@@ -15,33 +15,29 @@ void OrientationCorrection(char sensor, movement movementType, int currentDirect
 // Updates the current coordinates based on grid detection readings from optosensors on base
 void CoordinateAlgorithm(int &x_i, int &y_i, int x_f, int y_f, movement movementType, bool &newIntersection, int currentDirection) // i = current position, f = final (target) position
 {	
-	/* Update sensor readings */
-	PhotoResistorReading(photoSensorPinA, photoSensorStateA);
-	PhotoResistorReading(photoSensorPinB, photoSensorStateB);	
-	PhotoResistorReading(photoSensorPinC, photoSensorStateC);	
-	PhotoResistorReading(photoSensorPinD, photoSensorStateD);
+	// Update sensor readings
+	// OptoSensorReading();
 	
-	switch(movementType) // Movement type is either lateral or longitudinal
+	switch(movementType)
 	{
-		case longitudinal:	
+				case longitudinal:	
 		{					if (!newIntersection) // Check to be sure this isn't the same intersection (and thus incorrectly changing coordinates)
-							{ 	// (A:870, B:200) -> Working values in lab
-								//if (870 > photoSensorStateA || 200 > photoSensorStateD) // A: 750, D:130 for our prototype
-								if (CheckIfBlack('A', blackValueA, whiteValueA) || CheckIfBlack('D', blackValueD, whiteValueD))
+							{
+								if (CheckIfBlack('A') || CheckIfBlack('D'))
 								{	// Grid intersection detected
 									newIntersection = true;
 									MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, 0,0);
 									MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, 0,0);
-									//OrientationCorrection('A', movementType, currentDirection);
-									//OrientationCorrection('D', movementType, currentDirection);
+									OrientationCorrection('A', movementType, currentDirection);
+									OrientationCorrection('D', movementType, currentDirection);
+
 									if (y_f < y_i) // Final coordinate is south of current position
 										y_i -= 1;
 									else // Final coordinate is north of current position
 										y_i += 1;
-								}
+								}						
 							}
-							// if (870 < photoSensorStateA && 200 < photoSensorStateD)
-							else if (!CheckIfBlack('A', blackValueA, whiteValueA) && !CheckIfBlack('D', blackValueD, whiteValueD))
+							else if (!CheckIfBlack('A') && !CheckIfBlack('D'))
 							{
 								newIntersection = false;
 							}
@@ -49,23 +45,21 @@ void CoordinateAlgorithm(int &x_i, int &y_i, int x_f, int y_f, movement movement
 		}
 		case lateral:		
 		{					if (!newIntersection) // Check to be sure this isn't the same intersection (and thus incorrectly changing coordinates)
-							{	// (A:220, B:850) -> Working values in lab
-								//if (220 > photoSensorStateB ||  850 > photoSensorStateC)
-								if (CheckIfBlack('B', blackValueB, whiteValueB) || CheckIfBlack('C', blackValueC, whiteValueC))
+							{	
+								if (CheckIfBlack('B') || CheckIfBlack('C'))
 								{ // Grid intersection detected
 									newIntersection = true;
 									MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, 0, 0);
 									MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, 0, 0);
-									//OrientationCorrection('B', movementType, currentDirection);
-									//OrientationCorrection('C', movementType, currentDirection);
+									OrientationCorrection('B', movementType, currentDirection);
+									OrientationCorrection('C', movementType, currentDirection);
 									if (x_f < x_i) // Final coordinate is west of current position
 										x_i -= 1;
 									else // Final coordinate is east of current position
 										x_i += 1;
 								}
 							}
-							// if (220 < photoSensorStateB && 850 < photoSensorStateC)
-							else if (!CheckIfBlack('B', blackValueB, whiteValueB) && !CheckIfBlack('C', blackValueC, whiteValueC))
+							else if (!CheckIfBlack('B') && !CheckIfBlack('C'))
 							{
 								newIntersection = false;
 							}
@@ -96,26 +90,47 @@ void ObstacleAlgorithm(int x_f, int y_f)
 	// Move to diverted location
 } */
 
-bool CheckIfBlack(char sensor, int blackValue, int whiteValue)
-{	
-	int currentValue; // Current sensor reading corresponding to 'sensor'
+bool CheckIfBlack(char sensor)
+{	//int tolerance = 500; // Black is high, white is low
+	
+	// Update sensor readings
+	OptoSensorReading();
+	
+	switch(sensor) // Update sensor reading
+	{ // < 2000 for white lines
+		case 'A':	if (optoSensorStateA > 500) // 500
+						return true;
+					break;
+		case 'B':	if (optoSensorStateB > 500) // 1500
+						return true;
+					break;
+		case 'C':	if (optoSensorStateC > 500) // 1500
+						return true;
+					break;
+		case 'D':	if (optoSensorStateD > 500) // 500
+						return true;
+					break;
+	}
+	/*
 	switch(sensor) // Update sensor reading
 	{
-		case 'A':	PhotoResistorReading(photoSensorPinA, currentValue); break;
-		case 'B':	PhotoResistorReading(photoSensorPinB, currentValue); break;
-		case 'C':	PhotoResistorReading(photoSensorPinC, currentValue); break;
-		case 'D':	PhotoResistorReading(photoSensorPinD, currentValue); break;
+		case 'A':	if (abs(optoSensorStateA - qtrrc.calibratedMaximumOn[0]) < abs(optoSensorStateA - qtrrc.calibratedMinimumOn[0]))
+						return true;
+					break;
+		case 'B':	if (abs(optoSensorStateB - qtrrc.calibratedMaximumOn[1]) < abs(optoSensorStateB - qtrrc.calibratedMinimumOn[1]))
+						return true;
+					break;
+		case 'C':	if (abs(optoSensorStateC - qtrrc.calibratedMaximumOn[2]) < abs(optoSensorStateC - qtrrc.calibratedMinimumOn[2]))
+						return true;
+					break;
+		case 'D':	if (abs(optoSensorStateD - qtrrc.calibratedMaximumOn[3]) < abs(optoSensorStateD - qtrrc.calibratedMinimumOn[3]))
+						return true;
+					break;
 	}
-	if (blackValue - 30 < currentValue && currentValue > blackValue + 30)
-		return true;
-	else if (whiteValue - 30 < currentValue && currentValue > whiteValue + 30)
-		return false;
-	else
-	{	Debug("Photoresistor Value Error\nSensor:");
-		Debug(sensor);
-		Debug(currentValue);
-	}
+	*/
 	
+	// Default to returning not black -> false
+	return false;
 	/*
 	if (abs(currentValue - blackValue) < abs(currentValue - whiteValue)) // Check metrics
 		return true;
@@ -128,8 +143,8 @@ void Rotate(char sensor, rotation rotationType)
 {
 	switch(sensor)
 	{
-		case 'A':	while (!CheckIfBlack('D', blackValueD, whiteValueD))
-					{
+		case 'A':	while (!CheckIfBlack('D'))
+					{	
 						if (rotationType == clockwise)
 						{
 							MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, 0);
@@ -144,8 +159,8 @@ void Rotate(char sensor, rotation rotationType)
 						}
 					}
 					break;
-		case 'B':	while (!CheckIfBlack('C', blackValueC, whiteValueC))
-					{
+		case 'B':	while (!CheckIfBlack('C'))
+					{	
 						if (rotationType == clockwise)
 						{
 							MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, 1);
@@ -160,8 +175,8 @@ void Rotate(char sensor, rotation rotationType)
 						}
 					}
 					break;
-		case 'C':	while (!CheckIfBlack('B', blackValueB, whiteValueB))
-					{
+		case 'C':	while (!CheckIfBlack('B'))
+					{	
 						if (rotationType == clockwise)
 						{
 							MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, 1);
@@ -176,16 +191,16 @@ void Rotate(char sensor, rotation rotationType)
 						}
 					}
 					break;
-		case 'D':	while (!CheckIfBlack('A', blackValueA, whiteValueA))
-					{
+		case 'D':	while (!CheckIfBlack('A'))
+					{	
 						if (rotationType == clockwise)
-						{
+						{	
 							MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, 1);
 							MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, 0);
 							MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, driveSpeed, 1);
 						}
 						else if (rotationType == anticlockwise)
-						{
+						{	
 							MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, 0);
 							MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, 1);
 							MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, driveSpeed, 0);
@@ -209,44 +224,44 @@ void OrientationCorrection(char sensor, movement movementType, int currentDirect
 					else
 						Rotate('A', anticlockwise);
 					// Move left until sensors B,C trip
-					while (!CheckIfBlack('B', blackValueB, whiteValueB) && !CheckIfBlack('C', blackValueC, whiteValueC))
-					{
+					/* while (!CheckIfBlack('B') || !CheckIfBlack('C'))
+					{	
 						MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, 0);
 						MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, driveSpeed, 0);
-					}
+					} */
 					break;
 		case 'B':	if (currentDirection == 0)
 						Rotate('B', anticlockwise);
 					else
 						Rotate('B', clockwise);
 					// Move down until sensor A,D trip
-					while (!CheckIfBlack('A', blackValueA, whiteValueA) && !CheckIfBlack('D', blackValueD, whiteValueD))
-					{
+					/* while (!CheckIfBlack('A') || !CheckIfBlack('D'))
+					{	
 						MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, 0);
 						MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, driveSpeed, 0);
-					}
+					} */
 					break;
 		case 'C':	if (currentDirection == 0)
 						Rotate('C', clockwise);
 					else
 						Rotate('C', anticlockwise);
 					// Move up until sensor A,D trip
-					while (!CheckIfBlack('A', blackValueA, whiteValueA) && !CheckIfBlack('D', blackValueD, whiteValueD))
-					{
+					/* while (!CheckIfBlack('A') || !CheckIfBlack('D'))
+					{	
 						MotorControl(motorControlPinA1, motorControlPinA2, hBridgeEnable1A, driveSpeed, 1);
 						MotorControl(motorControlPinD1, motorControlPinD2, hBridgeEnable2D, driveSpeed, 1);
-					}
+					} */
 					break;
 		case 'D':	if (currentDirection == 0)
 						Rotate('D', anticlockwise);
 					else
 						Rotate('D', clockwise);
 					// Move right until sensor B,C trip
-					while (!CheckIfBlack('B', blackValueB, whiteValueB) && !CheckIfBlack('C', blackValueC, whiteValueC))
-					{
+					/* while (!CheckIfBlack('B') || !CheckIfBlack('C'))
+					{	
 						MotorControl(motorControlPinB1, motorControlPinB2, hBridgeEnable1B, driveSpeed, 1);
 						MotorControl(motorControlPinC1, motorControlPinC2, hBridgeEnable2C, driveSpeed, 1);
-					}
+					} */
 					break;
 	}
 	// Power down all motors
